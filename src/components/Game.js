@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import GameOver from './GameOver';
 import { drawGame } from '../utils/drawingUtils';
 import { loadImages } from '../utils/imageUtils';
-import { initSounds } from '../utils/soundUtils';
+import { initSounds, playSound, stopSound } from '../utils/soundUtils';
 import { updateGameState } from '../utils/gameLogic';
 
 const Game = () => {
@@ -56,6 +56,11 @@ const Game = () => {
             drawGame(ctx, gameStateRef.current, images, canvas.width, canvas.height);
             
             const newState = updateGameState(gameStateRef.current, canvas.width, canvas.height);
+
+            if (newState.score > gameStateRef.current.score) {
+                playSound('score');
+            }
+
             gameStateRef.current = newState;
 
             // Update the score state, but don't trigger a re-render
@@ -68,6 +73,9 @@ const Game = () => {
 
             if (newState.gameOver) {
                 setGameOver(true);
+                playSound('hit');
+                stopSound('bgMusic');
+                setTimeout(() => playSound('gameOver'), 500);
                 return;
             }
 
@@ -98,8 +106,10 @@ const Game = () => {
         gameLoopRef.current = requestAnimationFrame(gameLoop);
 
         return () => {
+            // Clean up methods
             window.removeEventListener('resize', resizeCanvas);
             cancelAnimationFrame(gameLoopRef.current);
+            stopSound('bgMusic')
         };
     }, [images, gameLoop]);
 
@@ -107,7 +117,9 @@ const Game = () => {
 
     const handleClick = useCallback(() => {
         if (!gameOver && gameStateRef.current) {
+            playSound('bgMusic');
             gameStateRef.current.bird.velocity = -5;
+            playSound('fly');
         }
     }, [gameOver]);
 
@@ -129,6 +141,7 @@ const Game = () => {
         gameStateRef.current = initGameState();
         setScore(0);
         setGameOver(false);
+        playSound('bgMusic');
         gameLoopRef.current = requestAnimationFrame(gameLoop);
     }, [gameLoop]);
 

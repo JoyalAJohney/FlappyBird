@@ -57,7 +57,6 @@ export const updateGameState = (prevState, canvasWidth, canvasHeight) => {
         gameOver = true;
     }
 
-    console.log('New score: ', newScore)
     return {
         ...prevState,
         bird: newBird,
